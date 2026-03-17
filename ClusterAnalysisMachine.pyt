@@ -292,7 +292,7 @@ class PolygonClusterAnalysis:
             direction="Input"
         )
         param1.parameterDependencies = [param0.name]
-        param1.filter.list = ["String"]
+        param1.filter.list = []
 
         param2 = arcpy.Parameter(
             displayName="Buffer Distance Field",
