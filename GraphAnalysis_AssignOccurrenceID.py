@@ -18,7 +18,6 @@ def execute(parameters, messages):
     # ----------------------------------
     arcpy.AddMessage("Building graph from near table...")
     graph = defaultdict(set)
-    seed_species = {}
 
     with arcpy.da.SearchCursor(
         near_table,
@@ -28,30 +27,44 @@ def execute(parameters, messages):
             graph[(species, seed_a)].add(seed_b)
             graph[(species, seed_b)].add(seed_a)
 
+    arcpy.AddMessage(f"Graph built with {len(graph)} nodes from near table.")
+
     # ----------------------------------
     # ENSURE ISOLATED SEEDS ARE INCLUDED
+    # With raw points, deduplicate by SeedID first so we
+    # only add each unique seed once rather than once per
+    # raw observation row.
     # ----------------------------------
     arcpy.AddMessage("Adding isolated seeds...")
+    seed_species = {}
+
     with arcpy.da.SearchCursor(
         seed_points,
         [seed_id_field, species_field]
     ) as cursor:
         for seed_id, species in cursor:
-            seed_species[seed_id] = species
-            graph.setdefault((species, seed_id), set())
+            if seed_id not in seed_species:
+                seed_species[seed_id] = species
+                graph.setdefault((species, seed_id), set())
+
+    isolated = sum(1 for v in graph.values() if len(v) == 0)
+    arcpy.AddMessage(
+        f"{len(seed_species)} unique SeedIDs found. "
+        f"{isolated} are isolated (no neighbors within search distance)."
+    )
 
     # ----------------------------------
     # CONNECTED COMPONENTS (BFS)
     # ----------------------------------
     arcpy.AddMessage("Running graph analysis / connected components...")
     visited = set()
-    groups = []
+    groups  = []
     group_id = 1
 
     for (species, seed_id) in graph:
         if (species, seed_id) in visited:
             continue
-        queue = deque([(species, seed_id)])
+        queue     = deque([(species, seed_id)])
         component = []
         while queue:
             node = queue.popleft()
@@ -65,12 +78,15 @@ def execute(parameters, messages):
             groups.append((sid, species, group_id))
         group_id += 1
 
+    arcpy.AddMessage(
+        f"{group_id - 1} occurrence groups created from "
+        f"{len(groups)} unique SeedIDs."
+    )
+
     # ----------------------------------
     # WRITE OUTPUT TABLE
     # ----------------------------------
     arcpy.AddMessage("Writing output table...")
-
-    # Drop and recreate if it already exists
     if arcpy.Exists(out_table):
         arcpy.management.Delete(out_table)
 
