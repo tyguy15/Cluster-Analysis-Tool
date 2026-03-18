@@ -11,6 +11,7 @@ class Toolbox:
             AddAnotherID,
             Near9mAnalysis,
             GraphAnalysisAssignOccurrenceID,
+            OccurrenceGroupSummary,
             ChooseRepresentativePoint,
             PolygonClusterAnalysis,
             ConsolidateVisits
@@ -197,6 +198,94 @@ class GraphAnalysisAssignOccurrenceID:
 
     def execute(self, parameters, messages):
         import GraphAnalysis_AssignOccurrenceID as t
+        t.execute(parameters, messages)
+
+# ----------------------------------------------------------------
+# TOOL 3.5 — Occurrence Group Summary
+# ----------------------------------------------------------------
+class OccurrenceGroupSummary:
+    def __init__(self):
+        self.label       = "3.5 Occurrence Group Summary"
+        self.description = (
+            "Calculates point count and bounding diameter per occurrence "
+            "group and flags groups exceeding a user-defined extent threshold."
+        )
+
+    def getParameterInfo(self):
+        param0 = arcpy.Parameter(
+            displayName="Input Feature Class",
+            name="fc",
+            datatype="GPFeatureLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+        param1 = arcpy.Parameter(
+            displayName="Occurrence Group ID Field",
+            name="occ_field",
+            datatype="Field",
+            parameterType="Required",
+            direction="Input"
+        )
+        param1.parameterDependencies = [param0.name]
+        param1.filter.list = ["Short", "Long"]
+
+        param2 = arcpy.Parameter(
+            displayName="Seed ID Field",
+            name="seed_id_field",
+            datatype="Field",
+            parameterType="Required",
+            direction="Input"
+        )
+        param2.parameterDependencies = [param0.name]
+
+        param3 = arcpy.Parameter(
+            displayName="Large Extent Flag Threshold (meters)",
+            name="extent_threshold",
+            datatype="GPDouble",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        param4 = arcpy.Parameter(
+            displayName="Point Count Field Name",
+            name="point_count_field",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input"
+        )
+        param4.value = "occ_point_count"
+
+        param5 = arcpy.Parameter(
+            displayName="Bounding Diameter Field Name",
+            name="diameter_field",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input"
+        )
+        param5.value = "occ_diameter_m"
+
+        param6 = arcpy.Parameter(
+            displayName="Large Extent Flag Field Name",
+            name="flag_field",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input"
+        )
+        param6.value = "flag_large_extent"
+
+        return [param0, param1, param2, param3, param4, param5, param6]
+
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
+
+    def execute(self, parameters, messages):
+        import OccurrenceGroupSummary as t
         t.execute(parameters, messages)
 
 # ----------------------------------------------------------------
