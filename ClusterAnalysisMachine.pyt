@@ -350,7 +350,6 @@ class ConsolidateVisits:
     def __init__(self):
         self.label       = "6. Consolidate Visits"
         self.description = "Deduplicates visits per occurrence and concatenates notes."
-
     def getParameterInfo(self):
         param0 = arcpy.Parameter(
             displayName="Input Table / Feature Class",
@@ -370,8 +369,8 @@ class ConsolidateVisits:
         param1.filter.list = ["Short", "Long"]
 
         param2 = arcpy.Parameter(
-            displayName="Visit ID Field",
-            name="visitid_field",
+            displayName="Observer Field",
+            name="observer_field",
             datatype="Field",
             parameterType="Required",
             direction="Input"
@@ -379,52 +378,62 @@ class ConsolidateVisits:
         param2.parameterDependencies = [param0.name]
 
         param3 = arcpy.Parameter(
+            displayName="Observation Date Field",
+            name="date_field",
+            datatype="Field",
+            parameterType="Required",
+            direction="Input"
+        )
+        param3.parameterDependencies = [param0.name]
+        param3.filter.list = ["Date"]
+
+        param4 = arcpy.Parameter(
             displayName="Note Field",
             name="note_field",
             datatype="Field",
             parameterType="Required",
             direction="Input"
         )
-        param3.parameterDependencies = [param0.name]
-        param3.filter.list = ["String"]
+        param4.parameterDependencies = [param0.name]
 
-        param4 = arcpy.Parameter(
+        param5 = arcpy.Parameter(
             displayName="Is Representative Field",
             name="rep_field",
             datatype="Field",
             parameterType="Required",
             direction="Input"
         )
-        param4.parameterDependencies = [param0.name]
-        param4.filter.list = ["Short", "Long"]
+        param5.parameterDependencies = [param0.name]
+        param5.filter.list = ["Short", "Long"]
 
-        param5 = arcpy.Parameter(
+        param6 = arcpy.Parameter(
             displayName="Concatenated Note Field Name",
             name="concat_field",
             datatype="GPString",
             parameterType="Required",
             direction="Input"
         )
-        param5.value = "VisitNote_concat"
+        param6.value = "VisitNote_concat"
 
-        param6 = arcpy.Parameter(
+        param7 = arcpy.Parameter(
             displayName="Note Delimiter",
             name="delimiter",
             datatype="GPString",
             parameterType="Required",
             direction="Input"
         )
-        param6.value = " | "
+        param7.value = " | "
 
-        param7 = arcpy.Parameter(
+        param8 = arcpy.Parameter(
             displayName="Max Concatenated Note Length",
             name="concat_length",
             datatype="GPLong",
             parameterType="Required",
             direction="Input"
         )
-        param7.value = 4000
-        return [param0, param1, param2, param3, param4, param5, param6, param7]
+        param8.value = 2000
+        return [param0, param1, param2, param3, param4, param5, param6, param7, param8]
+    
 
     def isLicensed(self):
         return True
