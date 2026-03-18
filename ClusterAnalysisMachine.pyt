@@ -201,11 +201,11 @@ class GraphAnalysisAssignOccurrenceID:
         t.execute(parameters, messages)
 
 # ----------------------------------------------------------------
-# TOOL 3.5 — Occurrence Group Summary
+# TOOL 4 — Occurrence Group Summary
 # ----------------------------------------------------------------
 class OccurrenceGroupSummary:
     def __init__(self):
-        self.label       = "3.5 Occurrence Group Summary"
+        self.label       = "4. Occurrence Group Summary"
         self.description = (
             "Calculates point count and bounding diameter per occurrence "
             "group and flags groups exceeding a user-defined extent threshold."
@@ -289,11 +289,11 @@ class OccurrenceGroupSummary:
         t.execute(parameters, messages)
 
 # ----------------------------------------------------------------
-# TOOL 4 — Choose Representative Point
+# TOOL 5 — Choose Representative Point
 # ----------------------------------------------------------------
 class ChooseRepresentativePoint:
     def __init__(self):
-        self.label       = "4. Choose Representative Point"
+        self.label       = "5. Choose Representative Point"
         self.description = "Flags one representative record per occurrence group."
 
     def getParameterInfo(self):
@@ -358,11 +358,11 @@ class ChooseRepresentativePoint:
         t.execute(parameters, messages)
 
 # ----------------------------------------------------------------
-# TOOL 5 — Polygon Cluster Analysis
+# TOOL 6 — Polygon Cluster Analysis
 # ----------------------------------------------------------------
 class PolygonClusterAnalysis:
     def __init__(self):
-        self.label       = "5. Polygon Cluster Analysis"
+        self.label       = "6. Polygon Cluster Analysis"
         self.description = "Clusters points by species and buffer distance using Union-Find."
 
     def getParameterInfo(self):
@@ -433,11 +433,11 @@ class PolygonClusterAnalysis:
         t.execute(parameters, messages)
 
 # ----------------------------------------------------------------
-# TOOL 6 — Consolidate Visits
+# TOOL 7 — Consolidate Visits
 # ----------------------------------------------------------------
 class ConsolidateVisits:
     def __init__(self):
-        self.label       = "6. Consolidate Visits"
+        self.label       = "7. Consolidate Visits"
         self.description = "Deduplicates visits per occurrence and concatenates notes."
     def getParameterInfo(self):
         param0 = arcpy.Parameter(
