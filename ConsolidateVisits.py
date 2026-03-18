@@ -1,5 +1,37 @@
 import arcpy
 from collections import defaultdict
+from datetime import datetime
+
+# ---------- Helper functions ---------- #
+def normalize_date(value):
+    """Convert date to a consistent YYYY-MM-DD string regardless of input type."""
+    if value is None:
+        return None
+    # Already a datetime object
+    if hasattr(value, 'date'):
+        return value.date().isoformat()
+    # Stored as a string — try common formats
+    value = str(value).strip()
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%m/%d/%Y %H:%M:%S",
+        "%m/%d/%Y"
+    ):
+        try:
+            return datetime.strptime(value, fmt).date().isoformat()
+        except ValueError:
+            continue
+    # Fallback — strip time component by splitting on space or T
+    return value.split(" ")[0].split("T")[0]
+
+def normalize_observer(value):
+    """Normalize observer to a consistent lowercase stripped string."""
+    if value is None:
+        return None
+    return str(value).strip().lower()
+
+# -------------------------------------------- #
 
 def execute(parameters, messages):
     table          = parameters[0].valueAsText
@@ -23,22 +55,19 @@ def execute(parameters, messages):
             field_length=concat_length
         )
         arcpy.AddMessage(f"Added field: '{concat_field}'.")
+    else:
+        arcpy.AddMessage(f"Field '{concat_field}' already exists.")
 
     # ---------- Group rows by OccurrenceID + Observer + Date ---------- #
-    # This is the key change — we group by who visited and when,
-    # not by SeedID, so all GPS points from the same person on
-    # the same day at the same occurrence collapse into one visit.
     arcpy.AddMessage("Grouping rows by occurrence, observer, and date...")
     groups = defaultdict(list)
     search_fields = ["OID@", occ_field, observer_field, date_field, note_field, rep_field]
 
     with arcpy.da.SearchCursor(table, search_fields) as cursor:
         for oid, occ, observer, date, note, is_rep in cursor:
-            # Normalize date to date-only (strip time component if present)
-            # so that two records from the same day but different timestamps
-            # are treated as the same visit
-            date_key = date.date() if date is not None else None
-            key = (occ, observer, date_key)
+            date_key     = normalize_date(date)
+            observer_key = normalize_observer(observer)
+            key = (occ, observer_key, date_key)
             groups[key].append({
                 "oid":    oid,
                 "note":   note,
@@ -49,17 +78,31 @@ def execute(parameters, messages):
         f"Found {len(groups)} unique Occurrence + Observer + Date combinations."
     )
 
+    # ---------- Diagnostic sample ---------- #
+    arcpy.AddMessage("Sample group keys (first 5):")
+    for i, key in enumerate(list(groups.keys())[:5]):
+        occ, obs, dt = key
+        count = len(groups[key])
+        arcpy.AddMessage(
+            f"  OccurrenceID={occ} | Observer={obs} | Date={dt} | Rows={count}"
+        )
+
     # ---------- Determine keepers + concatenate notes ---------- #
-    # Keeper priority: representative-flagged row first, then first record
     arcpy.AddMessage("Identifying keeper records and concatenating notes...")
     notes_by_oid   = {}
     oids_to_delete = set()
+    no_rep_groups  = []
 
     for key, records in groups.items():
-        # Prefer the representative-flagged record
+        # Prefer representative-flagged record, fall back to first record
         rep_records = [r for r in records if r["is_rep"] == 1]
-        keeper      = rep_records[0] if rep_records else records[0]
-        keeper_oid  = keeper["oid"]
+        if rep_records:
+            keeper = rep_records[0]
+        else:
+            keeper = records[0]
+            no_rep_groups.append(key)
+
+        keeper_oid = keeper["oid"]
 
         # Collect unique non-empty notes from ALL records in group
         seen  = set()
@@ -86,12 +129,6 @@ def execute(parameters, messages):
     arcpy.AddMessage(f"Rows marked for deletion: {len(oids_to_delete)}")
 
     # ---------- Sanity check ---------- #
-    # Warn if any group had no representative flagged — means
-    # Tool 4 may not have been run yet or rep field is not populated
-    no_rep_groups = [
-        k for k, records in groups.items()
-        if not any(r["is_rep"] == 1 for r in records)
-    ]
     if no_rep_groups:
         arcpy.AddWarning(
             f"{len(no_rep_groups)} visit groups had no representative-flagged "
