@@ -332,7 +332,7 @@ class ChooseRepresentativePoint:
             direction="Input"
         )
         param3.parameterDependencies = [param0.name]
-        param3.filter.list = ["Date"]
+        param3.filter.list = []
 
         param4 = arcpy.Parameter(
             displayName="Is Representative Field Name",
