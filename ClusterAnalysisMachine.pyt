@@ -73,7 +73,7 @@ class Near9mAnalysis:
             direction="Input"
         )
         param1 = arcpy.Parameter(
-            displayName="Seed / Visit ID Field",
+            displayName="Seed / FEAT_SEQ Field",
             name="seed_id_field",
             datatype="Field",
             parameterType="Required",
@@ -153,7 +153,7 @@ class GraphAnalysisAssignOccurrenceID:
             direction="Input"
         )
         param2 = arcpy.Parameter(
-            displayName="Seed / Visit ID Field",
+            displayName="Seed / FEAT_SEQ Field",
             name="seed_id_field",
             datatype="Field",
             parameterType="Required",
