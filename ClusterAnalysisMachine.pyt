@@ -134,7 +134,7 @@ class Near9mAnalysis:
 # ----------------------------------------------------------------
 class GraphAnalysisAssignOccurrenceID:
     def __init__(self):
-        self.label       = "3. Graph Analysis — Assign Occurrence ID"
+        self.label       = "3. Group into Occurrence Clusters"
         self.description = "Assigns OccurrenceGroupIDs using connected components graph analysis."
 
     def getParameterInfo(self):
@@ -362,7 +362,7 @@ class ChooseRepresentativePoint:
 # ----------------------------------------------------------------
 class PolygonClusterAnalysis:
     def __init__(self):
-        self.label       = "6. Polygon Cluster Analysis"
+        self.label       = "6. Buffered Point Cluster Analysis"
         self.description = "Clusters points by species and buffer distance using Union-Find."
 
     def getParameterInfo(self):
