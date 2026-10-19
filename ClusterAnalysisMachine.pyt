@@ -113,7 +113,7 @@ class Near9mAnalysis:
             parameterType="Required",
             direction="Input"
         )
-        param5.value = "Seeds_Near_9m"
+        param5.value = "Near_9m_Pairs"
         return [param0, param1, param2, param3, param4, param5]
 
     def isLicensed(self):
