@@ -6,6 +6,7 @@ def execute(parameters, messages):
     buff_field    = parameters[2].valueAsText
     date_field    = parameters[3].valueAsText
     rep_field     = parameters[4].valueAsText
+    out_rep_fc    = parameters[5].valueAsText
 
     arcpy.env.overwriteOutput = True
 
@@ -51,3 +52,14 @@ def execute(parameters, messages):
         f"Done. {len(rep_oids)} representative points assigned "
         f"(one per {occurrence_id})."
     )
+
+     # -------------------------
+    # Step 4: Export representative points to a new feature class
+    # -------------------------
+    arcpy.AddMessage("Creating representative points layer...")
+    arcpy.conversion.ExportFeatures(
+        in_features=fc,
+        out_features=out_rep_fc,
+        where_clause=f"{arcpy.AddFieldDelimiters(fc, rep_field)} = 1"
+    )
+    arcpy.AddMessage(f"Done. Representative points saved to: {out_rep_fc}")

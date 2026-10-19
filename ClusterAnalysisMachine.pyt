@@ -146,7 +146,7 @@ class GraphAnalysisAssignOccurrenceID:
             direction="Input"
         )
         param1 = arcpy.Parameter(
-            displayName="Seed Points Layer",
+            displayName="Input Points Layer",
             name="seed_points",
             datatype="GPFeatureLayer",
             parameterType="Required",
@@ -184,7 +184,7 @@ class GraphAnalysisAssignOccurrenceID:
             parameterType="Required",
             direction="Input"
         )
-        param5.value = "Seed_OccurrenceGroups"
+        param5.value = "OccurrenceGroups"
         return [param0, param1, param2, param3, param4, param5]
 
     def isLicensed(self):
@@ -230,7 +230,7 @@ class OccurrenceGroupSummary:
         param1.filter.list = ["Short", "Long"]
 
         param2 = arcpy.Parameter(
-            displayName="Seed ID Field",
+            displayName="FEAT_SEQ Field",
             name="seed_id_field",
             datatype="Field",
             parameterType="Required",
@@ -294,7 +294,7 @@ class OccurrenceGroupSummary:
 class ChooseRepresentativePoint:
     def __init__(self):
         self.label       = "5. Choose Representative Point"
-        self.description = "Flags one representative record per occurrence group."
+        self.description = "Flags one representative record per occurrence group and makes a new layer of just these points."
 
     def getParameterInfo(self):
         param0 = arcpy.Parameter(
@@ -342,7 +342,16 @@ class ChooseRepresentativePoint:
             direction="Input"
         )
         param4.value = "is_representative"
-        return [param0, param1, param2, param3, param4]
+
+        param5 = arcpy.Parameter(
+            displayName="Output Representative Points",
+            name="out_rep_fc",
+            datatype="DEFeatureClass",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        return [param0, param1, param2, param3, param4, param5]
 
     def isLicensed(self):
         return True
