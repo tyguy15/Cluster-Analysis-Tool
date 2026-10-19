@@ -153,7 +153,7 @@ class GraphAnalysisAssignOccurrenceID:
             direction="Input"
         )
         param2 = arcpy.Parameter(
-            displayName="Seed / FEAT_SEQ Field",
+            displayName="FEAT_SEQ Field",
             name="seed_id_field",
             datatype="Field",
             parameterType="Required",

@@ -19,7 +19,7 @@ def execute(parameters, messages):
     # may share a SeedID. We just need one species value
     # per SeedID (they should all be the same species).
     # -------------------------------------------------
-    arcpy.AddMessage("Building SeedID lookups from raw points...")
+    arcpy.AddMessage("Building FEAT_SEQ lookups from raw points...")
     oid_to_seed    = {}
     oid_to_species = {}
     seed_to_species = {}
@@ -34,7 +34,7 @@ def execute(parameters, messages):
 
     arcpy.AddMessage(
         f"Found {len(oid_to_seed)} raw points across "
-        f"{len(seed_to_species)} unique SeedIDs."
+        f"{len(seed_to_species)} unique FEAT_SEQ IDs."
     )
 
     # -------------------------------------------------
@@ -67,7 +67,7 @@ def execute(parameters, messages):
     )
     arcpy.management.AlterField(
         out_near_table, seed_id_field,
-        new_field_name="SeedID_IN", new_field_alias="SeedID_IN"
+        new_field_name="SeedID_IN", new_field_alias="FEAT_SEQ_IN"
     )
     arcpy.management.AlterField(
         out_near_table, species_field,
@@ -84,7 +84,7 @@ def execute(parameters, messages):
     )
     arcpy.management.AlterField(
         out_near_table, seed_id_field,
-        new_field_name="SeedID_NEAR", new_field_alias="SeedID_NEAR"
+        new_field_name="SeedID_NEAR", new_field_alias="FEAT_SEQ_NEAR"
     )
     arcpy.management.AlterField(
         out_near_table, species_field,
@@ -98,7 +98,7 @@ def execute(parameters, messages):
     # (same visit, multiple raw points). We remove those
     # too since they aren't meaningful pairs.
     # -------------------------------------------------
-    arcpy.AddMessage("Removing self-matches and same-SeedID pairs...")
+    arcpy.AddMessage("Removing self-matches and same-FEAT_SEQ pairs...")
     removed = 0
     with arcpy.da.UpdateCursor(
         out_near_table, ["IN_FID", "NEAR_FID", "SeedID_IN", "SeedID_NEAR"]
@@ -107,7 +107,7 @@ def execute(parameters, messages):
             if in_fid == near_fid or seed_in == seed_near:
                 cursor.deleteRow()
                 removed += 1
-    arcpy.AddMessage(f"Removed {removed} self-match / same-SeedID rows.")
+    arcpy.AddMessage(f"Removed {removed} self-match / same-FEAT_SEQ rows.")
 
     # -------------------------------------------------
     # FILTER TO SAME-SPECIES PAIRS ONLY
@@ -129,7 +129,7 @@ def execute(parameters, messages):
     # near table. Collapse to one row per unique pair
     # so Tool 3 graph analysis isn't artificially inflated.
     # -------------------------------------------------
-    arcpy.AddMessage("Deduplicating SeedID pairs...")
+    arcpy.AddMessage("Deduplicating FEAT_SEQ pairs...")
     seen_pairs = set()
     duplicate_oids = []
 
@@ -152,7 +152,7 @@ def execute(parameters, messages):
                     cursor.deleteRow()
 
     arcpy.AddMessage(
-        f"Removed {len(duplicate_oids)} duplicate SeedID pairs. "
+        f"Removed {len(duplicate_oids)} duplicate FEAT_SEQ pairs. "
         f"{len(seen_pairs)} unique same-species pairs remain."
     )
     arcpy.AddMessage(f"Near table complete:            {out_near_table}")
