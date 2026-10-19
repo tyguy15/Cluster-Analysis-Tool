@@ -9,6 +9,7 @@ def execute(parameters, messages):
     cluster_field  = parameters[3].valueAsText
     workspace_gdb  = parameters[4].valueAsText
     max_search_dist = parameters[5].value  # numeric, meters
+    freq_field     = parameters[6].valueAsText
 
     arcpy.env.overwriteOutput = True
     near_table = os.path.join(workspace_gdb, "near_tbl")
@@ -22,6 +23,9 @@ def execute(parameters, messages):
     if cluster_field not in existing_fields:
         arcpy.management.AddField(points_fc, cluster_field, "LONG")
         arcpy.AddMessage(f"Added field '{cluster_field}'.")
+    if freq_field not in existing_fields:
+        arcpy.management.AddField(points_fc, freq_field, "LONG")
+        arcpy.AddMessage(f"Added field '{freq_field}'.")
 
     # -----------------------------
     # BUILD LOOKUP DICTS
@@ -35,6 +39,20 @@ def execute(parameters, messages):
         for oid, sp, buff in cursor:
             buff_lookup[oid]    = buff if buff is not None else 0
             species_lookup[oid] = sp
+   
+    # -----------------------------
+    # CHECK SEARCH DISTANCE CAP
+    # Two buffers can overlap at up to the sum of their radii,
+    # so the cap should be at least the two largest buffers combined.
+    # -----------------------------
+    largest = sorted(buff_lookup.values(), reverse=True)[:2]
+    needed  = sum(largest)
+    if needed > max_search_dist:
+        arcpy.AddWarning(
+            f"Max search distance ({max_search_dist} m) is smaller than the two "
+            f"largest buffers combined ({needed} m). Some overlapping buffers may "
+            f"not be clustered. Increase the max search distance to avoid this."
+        )      
 
     # -----------------------------
     # GENERATE NEAR TABLE
@@ -88,24 +106,35 @@ def execute(parameters, messages):
             if dist == 0:
                 union(oid1, oid2)
                 continue
-            # Rule A: proximity within either buffer distance
-            if dist <= buff1 or dist <= buff2:
+            # Overlap rule: buffers overlap when the distance between the
+            # points is less than the two buffer radii combined
+            if dist < buff1 + buff2:
                 union(oid1, oid2)
 
     # -----------------------------
     # ASSIGN CLUSTER IDS
     # -----------------------------
-    arcpy.AddMessage("Assigning cluster IDs...")
+    arcpy.AddMessage("Assigning cluster IDs and cluster frequency...")
+
+    # Count how many points ended up in each cluster
+    cluster_sizes = defaultdict(int)
+    for oid in species_lookup:
+        cluster_sizes[find(oid)] += 1
+
     cluster_map     = {}
     cluster_counter = 1
-    with arcpy.da.UpdateCursor(points_fc, [oid_field, cluster_field]) as cursor:
-        for oid, _ in cursor:
+    with arcpy.da.UpdateCursor(
+        points_fc, [oid_field, cluster_field, freq_field]
+    ) as cursor:
+        for oid, _, _ in cursor:
             root = find(oid)
             if root not in cluster_map:
                 cluster_map[root] = cluster_counter
                 cluster_counter += 1
-            cursor.updateRow((oid, cluster_map[root]))
+            cursor.updateRow((oid, cluster_map[root], cluster_sizes[root]))
 
+    multi = sum(1 for n in cluster_sizes.values() if n > 1)
     arcpy.AddMessage(
-        f"Clustering complete. {cluster_counter - 1} clusters created."
+        f"Clustering complete. {cluster_counter - 1} clusters created; "
+        f"{multi} contain more than one point."
     )

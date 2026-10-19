@@ -372,7 +372,7 @@ class ChooseRepresentativePoint:
 class PolygonClusterAnalysis:
     def __init__(self):
         self.label       = "6. Buffered Point Cluster Analysis"
-        self.description = "Clusters points by species and buffer distance using Union-Find."
+        self.description = "Clusters same-species points whose buffers overlap, and records how many points are in each cluster."
 
     def getParameterInfo(self):
         param0 = arcpy.Parameter(
@@ -426,7 +426,17 @@ class PolygonClusterAnalysis:
             direction="Input"
         )
         param5.value = 500
-        return [param0, param1, param2, param3, param4, param5]
+
+        param6 = arcpy.Parameter(
+            displayName="Cluster Frequency Field Name",
+            name="freq_field",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input"
+            )
+        param6.value = "cluster_frequency"
+        
+        return [param0, param1, param2, param3, param4, param5, param6]
 
     def isLicensed(self):
         return True
