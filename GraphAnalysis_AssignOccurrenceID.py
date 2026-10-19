@@ -35,7 +35,7 @@ def execute(parameters, messages):
     # only add each unique seed once rather than once per
     # raw observation row.
     # ----------------------------------
-    arcpy.AddMessage("Adding isolated seeds...")
+    arcpy.AddMessage("Adding isolated points...")
     seed_species = {}
 
     with arcpy.da.SearchCursor(
@@ -49,7 +49,7 @@ def execute(parameters, messages):
 
     isolated = sum(1 for v in graph.values() if len(v) == 0)
     arcpy.AddMessage(
-        f"{len(seed_species)} unique SeedIDs found. "
+        f"{len(seed_species)} unique FEAT_SEQ IDs found. "
         f"{isolated} are isolated (no neighbors within search distance)."
     )
 
@@ -80,7 +80,7 @@ def execute(parameters, messages):
 
     arcpy.AddMessage(
         f"{group_id - 1} occurrence groups created from "
-        f"{len(groups)} unique SeedIDs."
+        f"{len(groups)} unique FEAT_SEQ IDs."
     )
 
     # ----------------------------------
@@ -104,3 +104,30 @@ def execute(parameters, messages):
 
     arcpy.AddMessage(f"Created {group_id - 1} occurrence groups.")
     arcpy.AddMessage(f"Output table: {out_table}")
+
+ # ----------------------------------
+    # JOIN OccurrenceGroupID BACK TO MAIN DATASET
+    # Same as running Join Field manually:
+    #   Input Table    = main dataset (seed_points)
+    #   Input Field    = FEAT_SEQ field (seed_id_field)
+    #   Join Table     = the output table just created
+    #   Join Field     = SeedID
+    #   Transfer Field = OccurrenceGroupID
+    # ----------------------------------
+    arcpy.AddMessage("Joining OccurrenceGroupID back to the main dataset...")
+
+    # If this tool was run before, the field is already there.
+    # Remove it so the join doesn't create OccurrenceGroupID_1.
+    existing_fields = [f.name for f in arcpy.ListFields(seed_points)]
+    if "OccurrenceGroupID" in existing_fields:
+        arcpy.AddMessage("OccurrenceGroupID already exists in the main dataset; replacing it.")
+        arcpy.management.DeleteField(seed_points, "OccurrenceGroupID")
+
+    arcpy.management.JoinField(
+        in_data=seed_points,
+        in_field=seed_id_field,
+        join_table=out_table,
+        join_field="SeedID",
+        fields=["OccurrenceGroupID"]
+    )
+    arcpy.AddMessage("OccurrenceGroupID added to the main dataset.")

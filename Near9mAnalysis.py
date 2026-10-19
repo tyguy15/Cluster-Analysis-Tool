@@ -57,7 +57,7 @@ def execute(parameters, messages):
     # Join on OBJECTID as before, then we use the
     # seed/species values to filter — not OBJECTID itself
     # -------------------------------------------------
-    arcpy.AddMessage("Joining SeedID and Species for IN_FID...")
+    arcpy.AddMessage("Working...")
     arcpy.management.JoinField(
         in_data=out_near_table,
         in_field="IN_FID",
@@ -74,7 +74,7 @@ def execute(parameters, messages):
         new_field_name="Species_IN", new_field_alias="Species_IN"
     )
 
-    arcpy.AddMessage("Joining SeedID and Species for NEAR_FID...")
+    arcpy.AddMessage("Working...")
     arcpy.management.JoinField(
         in_data=out_near_table,
         in_field="NEAR_FID",
