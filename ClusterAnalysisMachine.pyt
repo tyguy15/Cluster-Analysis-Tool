@@ -1,3 +1,4 @@
+import MergeOccurrenceGroups
 import arcpy
 
 # ----------------------------------------------------------------
@@ -14,7 +15,8 @@ class Toolbox:
             OccurrenceGroupSummary,
             ChooseRepresentativePoint,
             PolygonClusterAnalysis,
-            ConsolidateVisits
+            ConsolidateVisits,
+            MergeOccurrenceGroups
         ]
 
 # ----------------------------------------------------------------
@@ -554,4 +556,68 @@ class ConsolidateVisits:
 
     def execute(self, parameters, messages):
         import ConsolidateVisits as t
+        t.execute(parameters, messages)
+
+# ----------------------------------------------------------------
+# HELPER TOOL — Merge Occurrence Groups (manual review)
+# ----------------------------------------------------------------
+class MergeOccurrenceGroups:
+    def __init__(self):
+        self.label       = "Merge Occurrence Groups (Manual Review)"
+        self.description = (
+            "Moves every point in the selected representative points' groups into "
+            "another occurrence group. Select the representative point(s) you no "
+            "longer want, then enter the Occurrence Group ID you want to keep."
+        )
+
+    def getParameterInfo(self):
+        param0 = arcpy.Parameter(
+            displayName="Input Points Layer (with selection)",
+            name="input_fc",
+            datatype="GPFeatureLayer",
+            parameterType="Required",
+            direction="Input"
+        )
+        param1 = arcpy.Parameter(
+            displayName="Occurrence Group ID Field",
+            name="occurrence_id",
+            datatype="Field",
+            parameterType="Required",
+            direction="Input"
+        )
+        param1.parameterDependencies = [param0.name]
+        param1.filter.list = ["Short", "Long"]
+
+        param2 = arcpy.Parameter(
+            displayName="Species ID Field",
+            name="species_field",
+            datatype="Field",
+            parameterType="Required",
+            direction="Input"
+        )
+        param2.parameterDependencies = [param0.name]
+        param2.filter.list = []
+
+        param3 = arcpy.Parameter(
+            displayName="Occurrence Group ID to Keep",
+            name="target_id",
+            datatype="GPLong",
+            parameterType="Required",
+            direction="Input"
+        )
+        return [param0, param1, param2, param3]
+
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
+
+    def execute(self, parameters, messages):
+        import importlib
+        import MergeOccurrenceGroups as t
+        importlib.reload(t)
         t.execute(parameters, messages)
